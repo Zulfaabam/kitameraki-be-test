@@ -1,33 +1,31 @@
-import { CosmosClient } from "@azure/cosmos";
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import {
+  app,
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
+} from '@azure/functions'
+import { taskRepository } from '../repositories/taskRepository'
+import { Task } from '../models/task'
 
+export async function UpdateTask(
+  request: HttpRequest,
+  context: InvocationContext,
+): Promise<HttpResponseInit> {
+  const body = (await request.json()) as Partial<Task>
+  const taskId = request.query.get('id')
+  const organizationId = request.query.get('organizationId')
 
-export async function UpdateTask(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
-    const body = await request.json() as object;
-    const taskId = request.query.get('id');
-    const organizationId = request.query.get('organizationId');
+  if (!taskId || !organizationId) {
+    return { status: 400, body: 'Missing id or organizationId query parameter' }
+  }
 
-    let patchRequests = [];
+  const updatedTask = await taskRepository.update(taskId, organizationId, body)
 
-    for (let key in body) {
-        patchRequests.push({
-            "op": "replace",
-            "path": `/${key}`,
-            "value": body[key]
-        });
-    }
-
-    const client = new CosmosClient("this is a connection string");
-    const createdTask = await client.database("TaskApp")
-        .container("Tasks")
-        .item(taskId, organizationId)
-        .patch(patchRequests);
-
-    return { jsonBody: createdTask.resource, status: 200 };
-};
+  return { jsonBody: updatedTask, status: 200 }
+}
 
 app.http('UpdateTask', {
-    methods: ['POST'],
-    authLevel: 'anonymous',
-    handler: UpdateTask
-});
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  handler: UpdateTask,
+})
