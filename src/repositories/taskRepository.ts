@@ -3,12 +3,15 @@ import { getCosmosClient, databaseId, containerId } from '../lib/cosmosClient'
 import { Task } from '../models/task'
 
 export class TaskRepository {
-  private container: Container
+  private _container: Container | null = null
 
-  constructor() {
-    this.container = getCosmosClient()
-      .database(databaseId)
-      .container(containerId)
+  private get container(): Container {
+    if (!this._container) {
+      this._container = getCosmosClient()
+        .database(databaseId)
+        .container(containerId)
+    }
+    return this._container
   }
 
   async getById(id: string, organizationId: string): Promise<Task | null> {
