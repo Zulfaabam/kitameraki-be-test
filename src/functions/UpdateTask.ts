@@ -12,31 +12,47 @@ export async function UpdateTask(
   request: HttpRequest,
   context: InvocationContext,
 ): Promise<HttpResponseInit> {
-  const body = (await request.json()) as Partial<Task>
-  const taskId = request.query.get('id')
-  const organizationId = request.query.get('organizationId')
+  try {
+    const body = (await request.json()) as Partial<Task>
+    const taskId = request.query.get('id')
+    const organizationId = request.query.get('organizationId')
 
-  if (!taskId) {
-    return { status: 400, body: 'Missing id query parameter' }
-  }
+    // Ensure not to update immutable fields (id, organizationId)
+    delete body.id
+    delete body.organizationId
 
-  if (!organizationId) {
-    return { status: 400, body: 'Missing organizationId query parameter' }
-  }
+    if (!taskId) {
+      return { status: 400, body: 'Missing id query parameter' }
+    }
 
-  // For updates, validate against the same schema but allow partial fields
-  const { valid, errors } = validate(body)
-  if (!valid) {
-    // Only return 400 if errors are about types/formats, not about "required" fields missing (since it's a PATCH-like POST update)
-    const criticalErrors = errors?.filter((e) => !e.includes('required'))
-    if (criticalErrors && criticalErrors.length > 0) {
-      return { jsonBody: { errors: criticalErrors }, status: 400 }
+    if (!organizationId) {
+      return { status: 400, body: 'Missing organizationId query parameter' }
+    }
+
+    // For updates, validate against the same schema but allow partial fields
+    const { valid, errors } = validate(body)
+    if (!valid) {
+      // Only return 400 if errors are about types/formats, not about "required" fields missing (since it's a PATCH-like POST update)
+      const criticalErrors = errors?.filter((e) => !e.includes('required'))
+      if (criticalErrors && criticalErrors.length > 0) {
+        return { jsonBody: { errors: criticalErrors }, status: 400 }
+      }
+    }
+
+    const updatedTask = await taskRepository.update(
+      taskId,
+      organizationId,
+      body,
+    )
+
+    return { jsonBody: updatedTask, status: 200 }
+  } catch (error) {
+    context.error(`Error updating task ${request.query.get('id')}:`, error)
+    return {
+      status: 500,
+      body: 'Internal Server Error',
     }
   }
-
-  const updatedTask = await taskRepository.update(taskId, organizationId, body)
-
-  return { jsonBody: updatedTask, status: 200 }
 }
 
 app.http('UpdateTask', {

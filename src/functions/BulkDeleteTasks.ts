@@ -10,30 +10,38 @@ export async function BulkDeleteTasks(
   request: HttpRequest,
   context: InvocationContext,
 ): Promise<HttpResponseInit> {
-  const body = (await request.json()) as string[]
-  const organizationId = request.query.get('organizationId')
+  try {
+    const body = (await request.json()) as { ids: string[] }
+    const organizationId = request.query.get('organizationId')
 
-  if (!organizationId) {
+    if (!organizationId) {
+      return {
+        status: 400,
+        body: 'Missing organizationId query parameter',
+      }
+    }
+
+    if (!Array.isArray(body.ids)) {
+      return {
+        status: 400,
+        body: 'Request body ids must be an array of task IDs',
+      }
+    }
+
+    await taskRepository.bulkDelete(body.ids, organizationId)
+
+    return { status: 204 }
+  } catch (error) {
+    context.error('Error bulk deleting tasks:', error)
     return {
-      status: 400,
-      body: 'Missing organizationId query parameter',
+      status: 500,
+      body: 'Internal Server Error',
     }
   }
-
-  if (!Array.isArray(body)) {
-    return {
-      status: 400,
-      body: 'Request body must be an array of task IDs',
-    }
-  }
-
-  await taskRepository.bulkDelete(body, organizationId)
-
-  return { status: 204 }
 }
 
 app.http('BulkDeleteTasks', {
-  methods: ['DELETE'],
+  methods: ['POST'],
   authLevel: 'function',
   handler: BulkDeleteTasks,
 })
