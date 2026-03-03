@@ -23,8 +23,10 @@
       "description": "Description of the task"
     },
     "dueDate": {
-      "type": "string",
-      "format": "date-time",
+      "oneOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
       "description": "Due date and time for the task"
     },
     "priority": {

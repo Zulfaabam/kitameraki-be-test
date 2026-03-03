@@ -16,8 +16,12 @@ export async function UpdateTask(
   const taskId = request.query.get('id')
   const organizationId = request.query.get('organizationId')
 
-  if (!taskId || !organizationId) {
-    return { status: 400, body: 'Missing id or organizationId query parameter' }
+  if (!taskId) {
+    return { status: 400, body: 'Missing id query parameter' }
+  }
+
+  if (!organizationId) {
+    return { status: 400, body: 'Missing organizationId query parameter' }
   }
 
   // For updates, validate against the same schema but allow partial fields
@@ -36,7 +40,7 @@ export async function UpdateTask(
 }
 
 app.http('UpdateTask', {
-  methods: ['POST'],
+  methods: ['PATCH'],
   authLevel: 'function',
   handler: UpdateTask,
 })

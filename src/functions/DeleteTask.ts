@@ -13,13 +13,17 @@ export async function DeleteTask(
   const taskId = request.query.get('id')
   const organizationId = request.query.get('organizationId')
 
-  if (!taskId || !organizationId) {
-    return { status: 400, body: 'Missing id or organizationId query parameter' }
+  if (!taskId) {
+    return { status: 400, body: 'Missing id query parameter' }
+  }
+
+  if (!organizationId) {
+    return { status: 400, body: 'Missing organizationId query parameter' }
   }
 
   await taskRepository.delete(taskId, organizationId)
 
-  return { status: 204 } // 204 No Content is more standard for successful DELETE
+  return { status: 204 }
 }
 
 app.http('DeleteTask', {

@@ -13,10 +13,17 @@ export async function BulkDeleteTasks(
   const body = (await request.json()) as string[]
   const organizationId = request.query.get('organizationId')
 
-  if (!organizationId || !Array.isArray(body)) {
+  if (!organizationId) {
     return {
       status: 400,
-      body: 'Missing organizationId query parameter or invalid request body',
+      body: 'Missing organizationId query parameter',
+    }
+  }
+
+  if (!Array.isArray(body)) {
+    return {
+      status: 400,
+      body: 'Request body must be an array of task IDs',
     }
   }
 

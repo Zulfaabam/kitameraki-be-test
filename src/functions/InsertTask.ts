@@ -4,6 +4,7 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions'
+import * as crypto from 'crypto'
 import { taskRepository } from '../repositories/taskRepository'
 import { Task } from '../models/task'
 import { validate } from '../lib/validation'
@@ -13,6 +14,17 @@ export async function InsertTask(
   context: InvocationContext,
 ): Promise<HttpResponseInit> {
   const body = (await request.json()) as Task
+
+  // Automatically generate ID if not provided
+  if (!body.id) {
+    body.id = crypto.randomUUID()
+  }
+
+  // Populate default values for optional properties
+  if (body.description === undefined) body.description = ''
+  if (body.dueDate === undefined) body.dueDate = null
+  if (body.priority === undefined) body.priority = 'medium'
+  if (body.tags === undefined) body.tags = []
 
   const { valid, errors } = validate(body)
   if (!valid) {
