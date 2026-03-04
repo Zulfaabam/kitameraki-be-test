@@ -5,9 +5,11 @@ import {
   InvocationContext,
 } from '@azure/functions'
 import * as crypto from 'crypto'
-import { taskRepository } from '../repositories/taskRepository'
-import { Task } from '../models/task'
-import { validate } from '../lib/validation'
+import { taskRepository } from '../../repositories/taskRepository'
+import { Task } from '../../models/task'
+import { validate } from '../../lib/validation'
+
+import { handleApiError } from '../../lib/errorHandler'
 
 export async function InsertTask(
   request: HttpRequest,
@@ -16,7 +18,7 @@ export async function InsertTask(
   try {
     const body = (await request.json()) as Task
 
-    // Automatically generate ID if not provided
+    // Automatically generate ID for new task
     if (!body.id) {
       body.id = crypto.randomUUID()
     }
@@ -26,6 +28,7 @@ export async function InsertTask(
     if (body.dueDate === undefined) body.dueDate = null
     if (body.priority === undefined) body.priority = 'medium'
     if (body.tags === undefined) body.tags = []
+    if (body.customFields === undefined) body.customFields = []
 
     const { valid, errors } = validate(body)
     if (!valid) {
@@ -36,11 +39,7 @@ export async function InsertTask(
 
     return { jsonBody: createdTask, status: 201 }
   } catch (error) {
-    context.error('Error inserting task:', error)
-    return {
-      status: 500,
-      body: 'Internal Server Error',
-    }
+    return handleApiError(error, context, 'Error inserting task')
   }
 }
 

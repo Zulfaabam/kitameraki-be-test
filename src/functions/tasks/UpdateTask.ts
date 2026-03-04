@@ -4,9 +4,11 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions'
-import { taskRepository } from '../repositories/taskRepository'
-import { Task } from '../models/task'
-import { validate } from '../lib/validation'
+import { taskRepository } from '../../repositories/taskRepository'
+import { Task } from '../../models/task'
+import { validate } from '../../lib/validation'
+
+import { handleApiError } from '../../lib/errorHandler'
 
 export async function UpdateTask(
   request: HttpRequest,
@@ -47,11 +49,11 @@ export async function UpdateTask(
 
     return { jsonBody: updatedTask, status: 200 }
   } catch (error) {
-    context.error(`Error updating task ${request.query.get('id')}:`, error)
-    return {
-      status: 500,
-      body: 'Internal Server Error',
-    }
+    return handleApiError(
+      error,
+      context,
+      `Error updating task ${request.query.get('id')}`,
+    )
   }
 }
 

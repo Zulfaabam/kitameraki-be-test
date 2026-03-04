@@ -1,5 +1,9 @@
 import { Container, SqlQuerySpec } from '@azure/cosmos'
-import { getCosmosClient, databaseId, containerId } from '../lib/cosmosClient'
+import {
+  getCosmosClient,
+  databaseId,
+  tasksContainerId,
+} from '../lib/cosmosClient'
 import { Task, TaskFilters } from '../models/task'
 
 export class TaskRepository {
@@ -9,7 +13,7 @@ export class TaskRepository {
     if (!this._container) {
       this._container = getCosmosClient()
         .database(databaseId)
-        .container(containerId)
+        .container(tasksContainerId)
     }
     return this._container
   }
@@ -89,7 +93,7 @@ export class TaskRepository {
     updates: Partial<Task>,
   ): Promise<Task> {
     const patchOperations = Object.entries(updates).map(([key, value]) => ({
-      op: 'replace' as const,
+      op: 'set' as const,
       path: `/${key}`,
       value,
     }))

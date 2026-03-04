@@ -1,3 +1,5 @@
+import { FieldType } from './formSettings'
+
 export type TaskStatus = 'todo' | 'in-progress' | 'completed'
 
 export interface Task {
@@ -9,6 +11,15 @@ export interface Task {
   priority?: 'low' | 'medium' | 'high'
   status: TaskStatus
   tags?: string[]
+  customFields?: TaskCustomField[]
+}
+
+export interface TaskCustomField {
+  id: string
+  label: string
+  required: boolean
+  type: FieldType
+  value: any
 }
 
 export interface TaskFilters {

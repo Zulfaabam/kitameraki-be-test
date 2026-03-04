@@ -46,6 +46,21 @@
         "maxLength": 50
       },
       "description": "Tags associated with the task"
+    },
+    "customFields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "required": { "type": "boolean" },
+          "type": { "type": "string" },
+          "value": {}
+        },
+        "required": ["id", "label", "required", "type"]
+      },
+      "description": "Custom fields for the task"
     }
   },
   "required": ["id", "organizationId", "title", "status"],

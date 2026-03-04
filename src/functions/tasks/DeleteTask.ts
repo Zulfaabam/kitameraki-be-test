@@ -4,7 +4,9 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions'
-import { taskRepository } from '../repositories/taskRepository'
+import { taskRepository } from '../../repositories/taskRepository'
+
+import { handleApiError } from '../../lib/errorHandler'
 
 export async function DeleteTask(
   request: HttpRequest,
@@ -26,11 +28,11 @@ export async function DeleteTask(
 
     return { status: 204 }
   } catch (error) {
-    context.error(`Error deleting task ${request.query.get('id')}:`, error)
-    return {
-      status: 500,
-      body: 'Internal Server Error',
-    }
+    return handleApiError(
+      error,
+      context,
+      `Error deleting task ${request.query.get('id')}`,
+    )
   }
 }
 

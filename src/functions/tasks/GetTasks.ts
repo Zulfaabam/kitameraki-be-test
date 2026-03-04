@@ -4,8 +4,10 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions'
-import { taskRepository } from '../repositories/taskRepository'
-import { TaskFilters, TaskStatus } from '../models/task'
+import { taskRepository } from '../../repositories/taskRepository'
+import { TaskFilters, TaskStatus } from '../../models/task'
+
+import { handleApiError } from '../../lib/errorHandler'
 
 export async function GetTasks(
   request: HttpRequest,
@@ -38,7 +40,7 @@ export async function GetTasks(
 
     return {
       jsonBody: {
-        data: tasks,
+        data: tasks.map(({ customFields, ...task }) => task),
         total,
         page,
         pageSize,
@@ -47,11 +49,7 @@ export async function GetTasks(
       status: 200,
     }
   } catch (error) {
-    context.error('Error fetching tasks:', error)
-    return {
-      status: 500,
-      body: 'Internal Server Error',
-    }
+    return handleApiError(error, context, 'Error fetching tasks')
   }
 }
 

@@ -4,7 +4,9 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions'
-import { taskRepository } from '../repositories/taskRepository'
+import { taskRepository } from '../../repositories/taskRepository'
+
+import { handleApiError } from '../../lib/errorHandler'
 
 export async function BulkDeleteTasks(
   request: HttpRequest,
@@ -32,11 +34,7 @@ export async function BulkDeleteTasks(
 
     return { status: 204 }
   } catch (error) {
-    context.error('Error bulk deleting tasks:', error)
-    return {
-      status: 500,
-      body: 'Internal Server Error',
-    }
+    return handleApiError(error, context, 'Error bulk deleting tasks')
   }
 }
 

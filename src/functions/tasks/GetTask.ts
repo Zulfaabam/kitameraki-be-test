@@ -4,7 +4,9 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions'
-import { taskRepository } from '../repositories/taskRepository'
+import { taskRepository } from '../../repositories/taskRepository'
+
+import { handleApiError } from '../../lib/errorHandler'
 
 export async function GetTask(
   request: HttpRequest,
@@ -24,16 +26,22 @@ export async function GetTask(
     const task = await taskRepository.getById(taskId, organizationId)
 
     if (!task) {
-      return { status: 404, body: 'Task not found' }
+      return {
+        status: 404,
+        jsonBody: {
+          code: 'NotFound',
+          message: 'Task not found',
+        },
+      }
     }
 
     return { jsonBody: task, status: 200 }
   } catch (error) {
-    context.error(`Error fetching task ${request.query.get('id')}:`, error)
-    return {
-      status: 500,
-      body: 'Internal Server Error',
-    }
+    return handleApiError(
+      error,
+      context,
+      `Error fetching task ${request.query.get('id')}`,
+    )
   }
 }
 
