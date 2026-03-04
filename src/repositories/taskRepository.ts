@@ -47,7 +47,7 @@ export class TaskRepository {
     }
 
     if (filters.dueDate) {
-      whereClause += ' AND c.dueDate = @dueDate'
+      whereClause += ' AND STARTSWITH(c.dueDate, @dueDate)'
       parameters.push({ name: '@dueDate', value: filters.dueDate })
     }
 
